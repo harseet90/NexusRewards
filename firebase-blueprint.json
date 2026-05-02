@@ -1,0 +1,100 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and balance",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "points": { "type": "number" },
+        "referralCode": { "type": "string" },
+        "referredBy": { "type": "string" },
+        "isAdmin": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastActiveAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "points", "referralCode"]
+    },
+    "Task": {
+      "title": "Earn Task",
+      "description": "Available tasks like PTC, surveys, etc.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["PTC", "SURVEY", "OFFER", "SHORTLINK", "TASK"] },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "reward": { "type": "number" },
+        "url": { "type": "string" },
+        "duration": { "type": "number" },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["id", "type", "title", "reward"]
+    },
+    "Claim": {
+      "title": "Task Claim",
+      "description": "User's completed tasks record",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "taskId": { "type": "string" },
+        "reward": { "type": "number" },
+        "claimedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "taskId", "reward", "claimedAt"]
+    },
+    "Withdrawal": {
+      "title": "Withdrawal Request",
+      "description": "User withdrawal history and status",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "amount": { "type": "number" },
+        "method": { "type": "string" },
+        "address": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "amount", "method", "address", "status", "createdAt"]
+    },
+    "GlobalSettings": {
+      "title": "Global Settings",
+      "description": "Platform configuration and API keys",
+      "type": "object",
+      "properties": {
+        "shortlinkKeys": { "type": "object" },
+        "captchaSiteKey": { "type": "string" },
+        "captchaSecretKey": { "type": "string" },
+        "adScript": { "type": "string" },
+        "minWithdrawal": { "type": "number" },
+        "maintenanceMode": { "type": "boolean" },
+        "faucetPayKey": { "type": "string" },
+        "faucetPayCurrency": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Available earn tasks"
+    },
+    "/users/{uid}/claims/{claimId}": {
+      "schema": "Claim",
+      "description": "User task completion history"
+    },
+    "/withdrawals/{withdrawalId}": {
+      "schema": "Withdrawal",
+      "description": "Withdrawal requests"
+    },
+    "/settings/config": {
+      "schema": "GlobalSettings",
+      "description": "Global platform configurations"
+    }
+  }
+}
