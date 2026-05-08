@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ShieldCheck, LayoutDashboard, Database, Key, Save, AlertCircle, Plus, Trash2, Edit2, CheckCircle, XCircle } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, Database, Key, Save, AlertCircle, Plus, Trash2, Edit2, CheckCircle, XCircle, Coins } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export default function Admin() {
@@ -27,6 +29,8 @@ export default function Admin() {
   const [ptcAds, setPtcAds] = useState<any[]>([]);
   const [newAd, setNewAd] = useState({ title: '', description: '', reward: 0, duration: 10, url: '' });
 
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
+
   useEffect(() => {
     if (!profile?.isAdmin) return;
 
@@ -40,11 +44,26 @@ export default function Admin() {
       setPtcAds(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
+    // Load Withdrawals
+    const unsubWithdrawals = onSnapshot(collection(db, 'withdrawals'), (snap) => {
+      setWithdrawals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
     return () => {
       unsubSettings();
       unsubAds();
+      unsubWithdrawals();
     };
   }, [profile?.isAdmin]);
+
+  const handleUpdateWithdrawal = async (id: string, status: 'PAID' | 'REJECTED') => {
+    try {
+      await updateDoc(doc(db, 'withdrawals', id), { status });
+      toast.success(`Withdrawal marked as ${status}`);
+    } catch (err) {
+      toast.error("Process failed");
+    }
+  };
 
   const handleSaveSettings = async () => {
     try {
@@ -251,9 +270,51 @@ export default function Admin() {
         
         <TabsContent value="payouts" className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
            <Card className="bg-[#1C1F26] border-white/5">
-              <CardContent className="p-12 text-center text-white/20">
-                 <AlertCircle className="w-12 h-12 mx-auto mb-4 opacity-10" />
-                 <p className="text-sm font-medium italic">Withdrawal request history will appear here once users start claiming.</p>
+              <CardContent className="p-0">
+                {withdrawals.length === 0 ? (
+                  <div className="p-12 text-center text-white/20">
+                    <AlertCircle className="w-12 h-12 mx-auto mb-4 opacity-10" />
+                    <p className="text-sm font-medium italic">No withdrawal requests found.</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader className="bg-white/5">
+                      <TableRow className="border-white/5">
+                        <TableHead className="text-[10px] font-bold uppercase text-white/40">User ID</TableHead>
+                        <TableHead className="text-[10px] font-bold uppercase text-white/40">Amount</TableHead>
+                        <TableHead className="text-[10px] font-bold uppercase text-white/40">Method</TableHead>
+                        <TableHead className="text-[10px] font-bold uppercase text-white/40">Status</TableHead>
+                        <TableHead className="text-[10px] font-bold uppercase text-white/40 text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {withdrawals.map((w) => (
+                        <TableRow key={w.id} className="border-white/5">
+                          <TableCell className="font-mono text-[10px]">{w.userId}</TableCell>
+                          <TableCell className="font-bold text-yellow-400">{w.amount} NXS</TableCell>
+                          <TableCell className="text-xs">{w.method} ({w.address})</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={cn(
+                              "text-[10px] uppercase",
+                              w.status === 'PENDING' ? "text-yellow-500 border-yellow-500/20" : 
+                              w.status === 'PAID' ? "text-emerald-500 border-emerald-500/20" : "text-red-500 border-red-500/20"
+                            )}>
+                              {w.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {w.status === 'PENDING' && (
+                              <div className="flex justify-end gap-2">
+                                <Button size="sm" onClick={() => handleUpdateWithdrawal(w.id, 'PAID')} className="bg-emerald-500 hover:bg-emerald-600 h-8 text-[10px]">Approve</Button>
+                                <Button size="sm" onClick={() => handleUpdateWithdrawal(w.id, 'REJECTED')} variant="destructive" className="h-8 text-[10px]">Deny</Button>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
            </Card>
         </TabsContent>

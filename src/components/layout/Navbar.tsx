@@ -32,15 +32,13 @@ export function Navbar() {
             </div>
 
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 hover:opacity-80 transition-opacity outline-none">
-                  <Avatar className="w-8 h-8 border border-indigo-500/30">
-                    <AvatarImage src={user.photoURL || undefined} />
-                    <AvatarFallback className="bg-indigo-500/10 text-indigo-400 text-xs">
-                      {user.displayName?.[0] || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                </button>
+              <DropdownMenuTrigger className="flex items-center gap-2 hover:opacity-80 transition-opacity outline-none">
+                <Avatar className="w-8 h-8 border border-indigo-500/30">
+                  <AvatarImage src={user.photoURL || undefined} />
+                  <AvatarFallback className="bg-indigo-500/10 text-indigo-400 text-xs">
+                    {user.displayName?.[0] || 'U'}
+                  </AvatarFallback>
+                </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-[#1C1F26] border-white/10 text-white">
                 <DropdownMenuLabel className="font-normal">
