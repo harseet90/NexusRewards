@@ -1,11 +1,23 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { db } from '../lib/firebase';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Coins, Target, Users2, ArrowUpRight, CheckCircle2, TrendingUp, Zap, Copy } from 'lucide-react';
+import { Coins, Target, Users2, ArrowUpRight, CheckCircle2, TrendingUp, Zap, Copy, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { collection, query, orderBy, limit, onSnapshot, getDocs, where } from 'firebase/firestore';
+import { formatDistanceToNow } from 'date-fns';
+
+interface Claim {
+  id: string;
+  taskId: string;
+  reward: number;
+  claimedAt: any;
+  taskTitle?: string;
+}
 
 const stats = [
   { label: 'Total Balance', value: '0', icon: Coins, color: 'text-yellow-400', glow: 'shadow-yellow-500/20', sub: 'Nexus Coins' },
@@ -14,12 +26,46 @@ const stats = [
 ];
 
 export default function Dashboard() {
-  const { profile } = useAuth();
+  const { profile, loading: authLoading } = useAuth();
+  const [recentClaims, setRecentClaims] = useState<Claim[]>([]);
+  const [claimsLoading, setClaimsLoading] = useState(true);
   
+  useEffect(() => {
+    if (!profile?.uid) return;
+
+    const q = query(
+      collection(db, 'users', profile.uid, 'claims'),
+      orderBy('claimedAt', 'desc'),
+      limit(5)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const claims = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Claim[];
+      setRecentClaims(claims);
+      setClaimsLoading(false);
+    }, (error) => {
+      process.env.NODE_ENV === 'development' && console.error("Error fetching claims:", error);
+      setClaimsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [profile?.uid]);
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   const displayStats = [
     { label: 'Total Balance', value: profile?.points?.toLocaleString() || '0', icon: Coins, color: 'text-yellow-400', glow: 'shadow-yellow-500/20', sub: 'Nexus Coins' },
-    { label: 'Tasks Completed', value: '0', icon: Target, color: 'text-indigo-400', glow: 'shadow-indigo-500/20', sub: 'Last 30 days' },
-    { label: 'Active Referrals', value: '0', icon: Users2, color: 'text-emerald-400', glow: 'shadow-emerald-500/20', sub: 'Earning 10% each' },
+    { label: 'Tasks Completed', value: profile?.tasksCompleted?.toLocaleString() || '0', icon: Target, color: 'text-indigo-400', glow: 'shadow-indigo-500/20', sub: 'Total Lifetime' },
+    { label: 'Active Referrals', value: profile?.referralsCount?.toLocaleString() || '0', icon: Users2, color: 'text-emerald-400', glow: 'shadow-emerald-500/20', sub: 'Earning 10% each' },
   ];
 
   const copyReferralLink = () => {
@@ -90,22 +136,56 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {[1, 2, 3].map((_, i) => (
-                <div key={i} className="flex items-center gap-4 group cursor-default">
-                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-emerald-500/10 transition-colors">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400/50 group-hover:text-emerald-400" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-bold text-white/90">Daily Reward Claimed</p>
-                    <p className="text-[10px] text-white/30 uppercase font-black tracking-wider">2 hours ago</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-mono font-bold text-emerald-400">+50.00</p>
-                    <p className="text-[10px] text-white/20 uppercase font-bold tracking-tighter">NXS</p>
-                  </div>
+              {claimsLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-4 animate-pulse">
+                      <div className="w-10 h-10 rounded-xl bg-white/5" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-white/5 rounded w-1/3" />
+                        <div className="h-3 bg-white/5 rounded w-1/4" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              <Link to="/pts">
+              ) : recentClaims.length > 0 ? (
+                <AnimatePresence mode="popLayout">
+                  {recentClaims.map((claim, i) => (
+                    <motion.div 
+                      key={claim.id} 
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      className="flex items-center gap-4 group cursor-default"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-emerald-500/10 transition-colors">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400/50 group-hover:text-emerald-400" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-white/90">
+                          {claim.taskTitle || 'Task Reward'}
+                        </p>
+                        <p className="text-[10px] text-white/30 uppercase font-black tracking-wider">
+                          {claim.claimedAt?.toDate ? formatDistanceToNow(claim.claimedAt.toDate(), { addSuffix: true }) : 'Just now'}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-mono font-bold text-emerald-400">+{claim.reward.toFixed(2)}</p>
+                        <p className="text-[10px] text-white/20 uppercase font-bold tracking-tighter">NXS</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mb-4 border border-white/5 border-dashed">
+                    <History className="w-8 h-8 text-white/10" />
+                  </div>
+                  <p className="text-sm font-bold text-white/40">No activity yet</p>
+                  <p className="text-[10px] text-white/20 uppercase font-bold tracking-wider mt-1">Start completing tasks to earn rewards</p>
+                </div>
+              )}
+              <Link to="/history">
                 <Button variant="ghost" className="w-full text-white/40 hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-[0.2em] py-8 border border-white/5 border-dashed mt-4">
                   View Full History
                 </Button>
@@ -148,8 +228,4 @@ export default function Dashboard() {
       </div>
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
 }

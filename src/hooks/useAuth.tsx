@@ -82,6 +82,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: user.email,
             displayName: user.displayName,
             points: 0,
+            tasksCompleted: 0,
+            referralsCount: 0,
             referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
             isAdmin: isAdmin,
             createdAt: new Date().toISOString(),

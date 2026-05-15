@@ -14,6 +14,7 @@ import Admin from './pages/Admin';
 import Shortlinks from './pages/Shortlinks';
 import Challenges from './pages/Challenges';
 import Surveys from './pages/Surveys';
+import History from './pages/History';
 
 function AppContent() {
   const { user, profile, loading, signIn } = useAuth();
@@ -87,6 +88,7 @@ function AppContent() {
             <Route path="/challenges" element={<Challenges />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/referrals" element={<Referrals />} />
+            <Route path="/history" element={<History />} />
             <Route path="/admin.portal" element={profile?.isAdmin ? <Admin /> : <Navigate to="/" />} />
           </Routes>
         </div>

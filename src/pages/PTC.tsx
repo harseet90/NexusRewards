@@ -70,12 +70,15 @@ export default function PTC() {
         userId: profile.uid,
         taskId: activeAd.id,
         reward: activeAd.reward,
-        claimedAt: new Date().toISOString()
+        claimedAt: serverTimestamp(),
+        taskTitle: activeAd.title,
+        type: 'PTC'
       });
 
       await updateDoc(userRef, {
         points: increment(activeAd.reward),
-        lastActiveAt: new Date().toISOString()
+        tasksCompleted: increment(1),
+        lastActiveAt: serverTimestamp()
       });
 
       setCompletedAds((prev) => [...prev, activeAd.id]);
