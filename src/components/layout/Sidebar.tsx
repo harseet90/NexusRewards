@@ -3,6 +3,7 @@ import { Home, Zap, ExternalLink, ClipboardList, BarChart3, Users, ShieldAlert, 
 import { cn } from '@/lib/utils';
 import { motion } from 'motion/react';
 import { useAuth } from '../../hooks/useAuth';
+import { AdBanner } from '../BannerAd';
 
 const navItems = [
   { icon: Home, label: 'Dashboard', href: '/' },
@@ -75,6 +76,7 @@ export function Sidebar({ isAdmin }: { isAdmin?: boolean }) {
           Sign Out
         </button>
 
+        <AdBanner position="left" className="mb-4 aspect-square" />
         <div className="bg-gradient-to-br from-indigo-500/10 to-purple-600/10 border border-indigo-500/20 rounded-2xl p-5 relative overflow-hidden group">
           <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <Zap className="w-20 h-20 text-white" />

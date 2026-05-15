@@ -73,6 +73,19 @@
         "faucetPayKey": { "type": "string" },
         "faucetPayCurrency": { "type": "string" }
       }
+    },
+    "BannerAd": {
+      "title": "Banner Ad",
+      "description": "Configurable display advertisements",
+      "type": "object",
+      "properties": {
+        "imageUrl": { "type": "string" },
+        "linkUrl": { "type": "string" },
+        "position": { "type": "string", "enum": ["header", "bottom", "right", "left"] },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["imageUrl", "linkUrl", "position", "isActive"]
     }
   },
   "firestore": {
@@ -95,6 +108,10 @@
     "/settings/config": {
       "schema": "GlobalSettings",
       "description": "Global platform configurations"
+    },
+    "/ads/{adId}": {
+      "schema": "BannerAd",
+      "description": "Banner advertisements"
     }
   }
 }

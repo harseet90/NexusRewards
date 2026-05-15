@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
+import { AdBanner } from './components/BannerAd';
 import { Toaster } from 'sonner';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from './lib/firebase';
@@ -79,7 +80,8 @@ function AppContent() {
       <Navbar />
       <Sidebar isAdmin={profile?.isAdmin} />
       <main className="pl-64 pt-16 h-screen overflow-y-auto">
-        <div className="max-w-6xl mx-auto py-8 px-6">
+        <div className="max-w-6xl mx-auto py-8 px-6 space-y-8">
+          <AdBanner position="header" className="w-full aspect-[8/1] mb-8" />
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/ptc" element={<PTC />} />
@@ -91,6 +93,7 @@ function AppContent() {
             <Route path="/history" element={<History />} />
             <Route path="/admin.portal" element={profile?.isAdmin ? <Admin /> : <Navigate to="/" />} />
           </Routes>
+          <AdBanner position="bottom" className="w-full aspect-[8/1] mt-12" />
         </div>
       </main>
       <Toaster position="top-right" theme="dark" />

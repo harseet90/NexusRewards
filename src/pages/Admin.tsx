@@ -29,6 +29,9 @@ export default function Admin() {
   const [ptcAds, setPtcAds] = useState<any[]>([]);
   const [newAd, setNewAd] = useState({ title: '', description: '', reward: 0, duration: 10, url: '' });
 
+  const [bannerAds, setBannerAds] = useState<any[]>([]);
+  const [newBannerAd, setNewBannerAd] = useState({ imageUrl: '', linkUrl: '', position: 'header' as const, isActive: true });
+
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
 
   useEffect(() => {
@@ -44,6 +47,11 @@ export default function Admin() {
       setPtcAds(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
+    // Load Banner Ads
+    const unsubBannerAds = onSnapshot(collection(db, 'ads'), (snap) => {
+      setBannerAds(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
     // Load Withdrawals
     const unsubWithdrawals = onSnapshot(collection(db, 'withdrawals'), (snap) => {
       setWithdrawals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -52,6 +60,7 @@ export default function Admin() {
     return () => {
       unsubSettings();
       unsubAds();
+      unsubBannerAds();
       unsubWithdrawals();
     };
   }, [profile?.isAdmin]);
@@ -86,6 +95,29 @@ export default function Admin() {
     }
   };
 
+  const handleAddBannerAd = async () => {
+    if (!newBannerAd.imageUrl || !newBannerAd.linkUrl) return;
+    try {
+      await addDoc(collection(db, 'ads'), {
+        ...newBannerAd,
+        createdAt: new Date().toISOString()
+      });
+      setNewBannerAd({ imageUrl: '', linkUrl: '', position: 'header', isActive: true });
+      toast.success("Banner Ad added successfully!");
+    } catch (err) {
+      toast.error("Failed to add banner ad");
+    }
+  };
+
+  const handleDeleteBannerAd = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'ads', id));
+      toast.success("Banner Ad deleted");
+    } catch (err) {
+      toast.error("Failed to delete banner ad");
+    }
+  };
+
   const handleDeleteAd = async (id: string) => {
     try {
       await deleteDoc(doc(db, 'tasks', id));
@@ -113,7 +145,8 @@ export default function Admin() {
       <Tabs defaultValue="config" className="w-full">
         <TabsList className="bg-[#1C1F26] border-white/5 p-1 mb-8">
           <TabsTrigger value="config" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white uppercase text-[10px] font-bold tracking-widest px-8">Configuration</TabsTrigger>
-          <TabsTrigger value="ptc" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white uppercase text-[10px] font-bold tracking-widest px-8">PTC Management</TabsTrigger>
+          <TabsTrigger value="ptc" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white uppercase text-[10px] font-bold tracking-widest px-8">PTC Ads</TabsTrigger>
+          <TabsTrigger value="banners" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white uppercase text-[10px] font-bold tracking-widest px-8">Banner Ads</TabsTrigger>
           <TabsTrigger value="users" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white uppercase text-[10px] font-bold tracking-widest px-8">Users & Data</TabsTrigger>
           <TabsTrigger value="payouts" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white uppercase text-[10px] font-bold tracking-widest px-8">Withdrawals</TabsTrigger>
         </TabsList>
@@ -264,6 +297,68 @@ export default function Admin() {
                    ))}
                  </TableBody>
                </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="banners" className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
+          <Card className="bg-[#1C1F26] border-white/5">
+            <CardHeader>
+              <CardTitle>Create New Banner Advertisement</CardTitle>
+              <CardDescription>Manage display ads for various placements</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Image URL</label>
+                  <Input placeholder="https://..." value={newBannerAd.imageUrl} onChange={e => setNewBannerAd({...newBannerAd, imageUrl: e.target.value})} className="bg-black/20 border-white/10" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Destination URL</label>
+                  <Input placeholder="https://..." value={newBannerAd.linkUrl} onChange={e => setNewBannerAd({...newBannerAd, linkUrl: e.target.value})} className="bg-black/20 border-white/10" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Position</label>
+                  <select 
+                    value={newBannerAd.position} 
+                    onChange={e => setNewBannerAd({...newBannerAd, position: e.target.value as any})}
+                    className="w-full bg-black/20 border-white/10 rounded-md h-10 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  >
+                    <option value="header" className="bg-[#1C1F26]">Header</option>
+                    <option value="bottom" className="bg-[#1C1F26]">Bottom</option>
+                    <option value="left" className="bg-[#1C1F26]">Left Sidebar</option>
+                    <option value="right" className="bg-[#1C1F26]">Right Sidebar</option>
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <Button onClick={handleAddBannerAd} className="w-full bg-indigo-500 font-bold h-10">
+                    <Plus className="w-4 h-4 mr-2" /> Add Banner
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {bannerAds.map(ad => (
+                  <div key={ad.id} className="bg-black/20 border border-white/5 rounded-xl p-4 relative group">
+                    <div className="mb-4 aspect-[4/1] bg-black/40 rounded-lg overflow-hidden border border-white/5">
+                      <img src={ad.imageUrl} alt="Ad Preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{ad.position}</p>
+                        <Badge variant="outline" className={cn("text-[9px] uppercase mt-1", ad.isActive ? "text-emerald-400 border-emerald-400/20" : "text-white/20 border-white/5")}>
+                          {ad.isActive ? 'Active' : 'Paused'}
+                        </Badge>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="icon" variant="ghost" onClick={() => handleDeleteBannerAd(ad.id)} className="h-8 w-8 text-red-500/50 hover:text-red-500 hover:bg-red-500/10">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

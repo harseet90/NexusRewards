@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { collection, query, orderBy, limit, onSnapshot, getDocs, where } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
+import { AdBanner } from '../components/BannerAd';
 
 interface Claim {
   id: string;
@@ -125,76 +126,79 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="bg-[#1C1F26] border-white/5 shadow-2xl">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-emerald-400" />
-              Recent Activity
-            </CardTitle>
-            <CardDescription className="text-white/40 text-[10px] uppercase font-black tracking-[0.2em]">Latest earnings & claims</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {claimsLoading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex items-center gap-4 animate-pulse">
-                      <div className="w-10 h-10 rounded-xl bg-white/5" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-white/5 rounded w-1/3" />
-                        <div className="h-3 bg-white/5 rounded w-1/4" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <Card className="bg-[#1C1F26] border-white/5 shadow-2xl">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-emerald-400" />
+                Recent Activity
+              </CardTitle>
+              <CardDescription className="text-white/40 text-[10px] uppercase font-black tracking-[0.2em]">Latest earnings & claims</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {claimsLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center gap-4 animate-pulse">
+                        <div className="w-10 h-10 rounded-xl bg-white/5" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-white/5 rounded w-1/3" />
+                          <div className="h-3 bg-white/5 rounded w-1/4" />
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : recentClaims.length > 0 ? (
-                <AnimatePresence mode="popLayout">
-                  {recentClaims.map((claim, i) => (
-                    <motion.div 
-                      key={claim.id} 
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="flex items-center gap-4 group cursor-default"
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-emerald-500/10 transition-colors">
-                        <CheckCircle2 className="w-5 h-5 text-emerald-400/50 group-hover:text-emerald-400" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-bold text-white/90">
-                          {claim.taskTitle || 'Task Reward'}
-                        </p>
-                        <p className="text-[10px] text-white/30 uppercase font-black tracking-wider">
-                          {claim.claimedAt?.toDate ? formatDistanceToNow(claim.claimedAt.toDate(), { addSuffix: true }) : 'Just now'}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-mono font-bold text-emerald-400">+{claim.reward.toFixed(2)}</p>
-                        <p className="text-[10px] text-white/20 uppercase font-bold tracking-tighter">NXS</p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mb-4 border border-white/5 border-dashed">
-                    <History className="w-8 h-8 text-white/10" />
+                    ))}
                   </div>
-                  <p className="text-sm font-bold text-white/40">No activity yet</p>
-                  <p className="text-[10px] text-white/20 uppercase font-bold tracking-wider mt-1">Start completing tasks to earn rewards</p>
-                </div>
-              )}
-              <Link to="/history">
-                <Button variant="ghost" className="w-full text-white/40 hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-[0.2em] py-8 border border-white/5 border-dashed mt-4">
-                  View Full History
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+                ) : recentClaims.length > 0 ? (
+                  <AnimatePresence mode="popLayout">
+                    {recentClaims.map((claim, i) => (
+                      <motion.div 
+                        key={claim.id} 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="flex items-center gap-4 group cursor-default"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-emerald-500/10 transition-colors">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-400/50 group-hover:text-emerald-400" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-bold text-white/90">
+                            {claim.taskTitle || 'Task Reward'}
+                          </p>
+                          <p className="text-[10px] text-white/30 uppercase font-black tracking-wider">
+                            {claim.claimedAt?.toDate ? formatDistanceToNow(claim.claimedAt.toDate(), { addSuffix: true }) : 'Just now'}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-mono font-bold text-emerald-400">+{claim.reward.toFixed(2)}</p>
+                          <p className="text-[10px] text-white/20 uppercase font-bold tracking-tighter">NXS</p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mb-4 border border-white/5 border-dashed">
+                      <History className="w-8 h-8 text-white/10" />
+                    </div>
+                    <p className="text-sm font-bold text-white/40">No activity yet</p>
+                    <p className="text-[10px] text-white/20 uppercase font-bold tracking-wider mt-1">Start completing tasks to earn rewards</p>
+                  </div>
+                )}
+                <Link to="/history">
+                  <Button variant="ghost" className="w-full text-white/40 hover:text-white hover:bg-white/5 text-[10px] font-black uppercase tracking-[0.2em] py-8 border border-white/5 border-dashed mt-4">
+                    View Full History
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="space-y-6">
+          <AdBanner position="right" className="w-full aspect-[3/4]" />
           <Card className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 border-none relative overflow-hidden group shadow-[0_0_50px_rgba(79,70,229,0.2)]">
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform rotate-12">
               <Zap className="w-40 h-40 text-white" />

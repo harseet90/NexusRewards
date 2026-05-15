@@ -95,5 +95,17 @@ service cloud.firestore {
       allow read: if true; // Public read for captcha keys/maintenance (though secret keys shouldn't be here)
       allow write: if isAdmin();
     }
+
+    // Ads Collection
+    match /ads/{adId} {
+      function isValidAd(data) {
+        return data.keys().hasAll(['imageUrl', 'linkUrl', 'position', 'isActive']) &&
+               data.imageUrl is string && data.linkUrl is string && 
+               data.position in ['header', 'bottom', 'right', 'left'] &&
+               data.isActive is bool;
+      }
+      allow read: if true; // Public can see ads
+      allow write: if isAdmin() && isValidAd(incoming());
+    }
   }
 }
