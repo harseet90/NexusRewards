@@ -70,9 +70,9 @@ export default function Leaderboard() {
                       className="flex items-center gap-4 p-6 hover:bg-white/[0.02] transition-colors"
                     >
                       <div className="w-8 text-center">
-                        {i === 0 ? <Crown className="w-5 h-5 text-yellow-400 mx-auto" /> : 
-                         i === 1 ? <Medal className="w-5 h-5 text-gray-300 mx-auto" /> :
-                         i === 2 ? <Medal className="w-5 h-5 text-amber-600 mx-auto" /> :
+                        {i === 0 ? <div className="p-2 bg-yellow-500/10 rounded-lg"><Crown className="w-5 h-5 text-yellow-400 mx-auto drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]" /></div> : 
+                         i === 1 ? <div className="p-2 bg-gray-400/10 rounded-lg"><Medal className="w-5 h-5 text-gray-300 mx-auto" /></div> :
+                         i === 2 ? <div className="p-2 bg-amber-700/10 rounded-lg"><Medal className="w-5 h-5 text-amber-600 mx-auto" /></div> :
                          <span className="text-sm font-mono font-bold text-white/20">#{i + 1}</span>}
                       </div>
                       

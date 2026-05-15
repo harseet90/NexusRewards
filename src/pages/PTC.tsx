@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { db } from '../lib/firebase';
-import { collection, query, getDocs, doc, setDoc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
+import { collection, query, getDocs, doc, setDoc, updateDoc, increment, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Clock, MousePointer2, CheckCircle2, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
-import ReCAPTCHA from 'react-google-recaptcha';
 
 interface PTCAd {
   id: string;
@@ -28,11 +27,6 @@ export default function PTC() {
   const [timer, setTimer] = useState(0);
   const [completedAds, setCompletedAds] = useState<string[]>([]);
   const [showCaptcha, setShowCaptcha] = useState(false);
-  const [captchaVerified, setCaptchaVerified] = useState(false);
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
-
-  // Replace with your Google ReCAPTCHA v2 Site Key
-  const SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || "YOUR_SITE_KEY_HERE";
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'tasks'), (snap) => {
@@ -61,16 +55,12 @@ export default function PTC() {
     if (completedAds.includes(ad.id)) return;
     setActiveAd(ad);
     setTimer(ad.duration);
-    setCaptchaVerified(false);
-    toast.info(`Stay on this page for ${ad.duration} seconds...`, { duration: 3000 });
-  };
-
-  const handleCaptchaChange = (value: string | null) => {
-    if (value) setCaptchaVerified(true);
+    window.open(ad.url, '_blank');
+    toast.info(`Stay on this page for ${ad.duration} seconds to claim reward...`, { duration: 5000 });
   };
 
   const handleCompleteAd = async () => {
-    if (!activeAd || !profile || !captchaVerified) return;
+    if (!activeAd || !profile) return;
     
     try {
       const userRef = doc(db, 'users', profile.uid);
@@ -96,13 +86,12 @@ export default function PTC() {
     } finally {
       setActiveAd(null);
       setShowCaptcha(false);
-      setCaptchaVerified(false);
     }
   };
 
   return (
     <div className="space-y-8">
-      {/* ... keeping header ... */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight mb-2">PTC Advertisements</h1>
@@ -128,27 +117,18 @@ export default function PTC() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ShieldAlert className="w-5 h-5 text-indigo-400" />
-              Human Verification
+              Claim Reward
             </DialogTitle>
             <DialogDescription className="text-white/40">
-              Please solve the captcha below to claim your reward of {activeAd?.reward} NXS.
+              Reward: {activeAd?.reward} NXS. Click the button below to confirm.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-center py-4 bg-black/20 rounded-xl">
-             <ReCAPTCHA
-                ref={recaptchaRef}
-                sitekey={SITE_KEY}
-                onChange={handleCaptchaChange}
-                theme="dark"
-              />
-          </div>
           <DialogFooter>
             <Button 
-              disabled={!captchaVerified}
               onClick={handleCompleteAd}
               className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold h-12"
             >
-              Verify & Claim Reward
+              Claim Reward
             </Button>
           </DialogFooter>
         </DialogContent>

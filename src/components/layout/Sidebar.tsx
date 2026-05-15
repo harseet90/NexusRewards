@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Zap, ExternalLink, ClipboardList, BarChart3, Users, ShieldAlert, Award, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { motion } from 'motion/react';
 
 const navItems = [
   { icon: Home, label: 'Dashboard', href: '/' },
@@ -16,34 +17,46 @@ export function Sidebar({ isAdmin }: { isAdmin?: boolean }) {
   const location = useLocation();
 
   return (
-    <div className="w-64 bg-[#0A0C0F] border-r border-white/5 flex flex-col h-screen fixed left-0 top-0 pt-20">
-      <div className="flex-1 px-4 space-y-1 py-4 overflow-y-auto">
-        <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest px-3 mb-2">Main Menu</div>
+    <div className="w-64 bg-[#0A0C0F] border-r border-white/5 flex flex-col h-screen fixed left-0 top-0 pt-20 shadow-[10px_0_30px_rgba(0,0,0,0.5)]">
+      <div className="flex-1 px-4 space-y-1 py-4 overflow-y-auto custom-scrollbar">
+        <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] px-3 mb-4">Main Menu</div>
         {navItems.map((item) => (
           <Link
             key={item.href}
             to={item.href}
             className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+              "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300 group relative overflow-hidden",
               location.pathname === item.href 
-                ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" 
-                : "text-white/60 hover:text-white hover:bg-white/5"
+                ? "bg-gradient-to-r from-indigo-500/20 to-purple-500/10 text-indigo-400 shadow-[inset_0_0_20px_rgba(99,102,241,0.1)] border border-indigo-500/30" 
+                : "text-white/40 hover:text-white hover:bg-white/5"
             )}
           >
-            <item.icon className="w-4 h-4" />
+            {location.pathname === item.href && (
+              <motion.div 
+                layoutId="active-pill" 
+                className="absolute left-0 w-1 h-6 bg-indigo-500 rounded-r-full"
+              />
+            )}
+            <item.icon className={cn(
+              "w-4 h-4 transition-transform group-hover:scale-110",
+              location.pathname === item.href ? "text-indigo-400" : "text-white/20 group-hover:text-white/60"
+            )} />
             {item.label}
           </Link>
         ))}
       </div>
       
-      <div className="p-4 border-t border-white/5">
-        <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Award className="w-4 h-4 text-indigo-400" />
-            <span className="text-xs font-bold text-white">Earn Booster</span>
+      <div className="p-6 border-t border-white/5">
+        <div className="bg-gradient-to-br from-indigo-500/10 to-purple-600/10 border border-indigo-500/20 rounded-2xl p-5 relative overflow-hidden group">
+          <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Zap className="w-20 h-20 text-white" />
           </div>
-          <p className="text-[10px] text-white/50 leading-relaxed">
-            Invite friends to earn 10% commission on every claim!
+          <div className="flex items-center gap-2 mb-3">
+            <Award className="w-4 h-4 text-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+            <span className="text-xs font-black text-white uppercase tracking-wider">Earn Booster</span>
+          </div>
+          <p className="text-[11px] text-white/40 leading-relaxed font-medium">
+            Invite friends to earn <span className="text-emerald-400 font-bold">10% commission</span> lifetime!
           </p>
         </div>
       </div>
