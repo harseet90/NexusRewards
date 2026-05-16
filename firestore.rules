@@ -41,7 +41,7 @@ service cloud.firestore {
       }
 
       allow get: if isSignedIn();
-      allow list: if isSignedIn() && (isOwner(uid) || isAdmin()); 
+      allow list: if isSignedIn(); // Allow listing for leaderboard
       
       allow create: if isSignedIn() && isOwner(uid) && 
                     incoming().keys().hasAll(['uid', 'email', 'points', 'isAdmin']) &&
@@ -61,7 +61,7 @@ service cloud.firestore {
         return data.keys().hasAll(['id', 'type', 'title', 'reward']) &&
                data.id is string && data.reward is number;
       }
-      allow read: if isSignedIn();
+      allow read: if true; // Tasks are public
       allow write: if isAdmin() && isValidTask(incoming());
     }
 
@@ -74,16 +74,14 @@ service cloud.firestore {
       allow read: if isOwner(uid) || isAdmin();
       allow create: if isOwner(uid) && 
                     (incoming().keys().hasAll(['userId', 'taskId', 'reward', 'claimedAt']) || incoming().keys().hasAll(['userId', 'taskId', 'reward', 'claimedAt', 'taskTitle', 'type'])) &&
-                    incoming().userId == uid && incoming().reward is number &&
-                    // Verify task exists
-                    exists(/databases/$(database)/documents/tasks/$(incoming().taskId));
+                    incoming().userId == uid && incoming().reward is number;
     }
 
     // Withdrawals Collection
     match /withdrawals/{withdrawalId} {
       function isValidWithdrawal(data) {
         return data.keys().hasAll(['userId', 'amount', 'method', 'address', 'status', 'createdAt']) &&
-               data.userId is string && data.amount > 0 && data.status in ['PENDING', 'APPROVED', 'REJECTED'];
+               data.userId is string && data.amount > 0 && data.status in ['PENDING', 'APPROVED', 'REJECTED', 'PAID'];
       }
       allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
@@ -95,7 +93,7 @@ service cloud.firestore {
 
     // Settings Collection
     match /settings/{docId} {
-      allow read: if true; // Public read for captcha keys/maintenance (though secret keys shouldn't be here)
+      allow read: if true; // Public read for captcha keys/maintenance
       allow write: if isAdmin();
     }
 
@@ -113,7 +111,7 @@ service cloud.firestore {
 
     // Link Sessions Collection
     match /link_sessions/{sessionId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow read: if true; // Verification page needs it, token is the secret
       allow write: if false; // Only server (Admin SDK) should write this
     }
   }

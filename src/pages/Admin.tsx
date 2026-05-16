@@ -17,6 +17,7 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState('config');
   const [settings, setSettings] = useState({
     shrinkearn: '',
+    shortlinkApiUrl: 'https://shrinkme.io/api',
     ouo: '',
     minWithdrawal: 1000,
     maintenanceMode: false,
@@ -175,28 +176,68 @@ export default function Admin() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <Card className="bg-[#1C1F26] border-white/5">
               <CardHeader>
-                <CardTitle className="text-lg">API Integrations</CardTitle>
-                <CardDescription>Manage your link shortener providers</CardDescription>
+                <div className="flex items-center gap-3">
+                  <Database className="w-5 h-5 text-indigo-400" />
+                  <div>
+                    <CardTitle className="text-lg">Shortlink Configuration</CardTitle>
+                    <CardDescription>Setup your API keys for ShrinkMe.io or ShrinkEarn.com</CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-xl p-4 mb-4">
+                  <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <ShieldCheck className="w-3 h-3" /> Setup Guide
+                  </h4>
+                  <ul className="text-[10px] space-y-1.5 text-white/60">
+                    <li>1. Go to <a href="https://shrinkme.io" className="text-indigo-400 hover:underline" target="_blank" rel="noreferrer">ShrinkMe.io</a> or ShrinkEarn settings</li>
+                    <li>2. Copy your <span className="font-bold text-white">API Token</span></li>
+                    <li>3. Paste it in the <span className="font-bold text-white">API Secret Token</span> field below</li>
+                    <li>4. Set the <span className="font-bold text-white">API URL</span> (e.g. <code>https://shrinkme.io/api</code>)</li>
+                  </ul>
+                </div>
+
                 <div className="space-y-4">
-                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">ShrinkEarn API Key</label>
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Base API URL</label>
                   <Input 
+                    value={settings.shortlinkApiUrl} 
+                    onChange={e => setSettings({...settings, shortlinkApiUrl: e.target.value})} 
+                    className="bg-black/20 border-white/10 font-mono"
+                    placeholder="https://shrinkme.io/api"
+                  />
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-[9px] h-6 bg-white/5 hover:bg-white/10 text-white/40"
+                      onClick={() => setSettings({...settings, shortlinkApiUrl: 'https://shrinkme.io/api'})}
+                    >
+                      Use ShrinkMe
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-[9px] h-6 bg-white/5 hover:bg-white/10 text-white/40"
+                      onClick={() => setSettings({...settings, shortlinkApiUrl: 'https://shrinkearn.com/api'})}
+                    >
+                      Use ShrinkEarn
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">API Secret Token</label>
+                  <Input 
+                    type="password"
                     value={settings.shrinkearn} 
                     onChange={e => setSettings({...settings, shrinkearn: e.target.value})} 
                     className="bg-black/20 border-white/10 font-mono"
+                    placeholder="Your API Token"
                   />
                 </div>
-                <div className="space-y-4">
-                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Ouo.io API Key</label>
-                  <Input 
-                    value={settings.ouo} 
-                    onChange={e => setSettings({...settings, ouo: e.target.value})} 
-                    className="bg-black/20 border-white/10 font-mono"
-                  />
-                </div>
-                <Button onClick={handleSaveSettings} className="w-full bg-indigo-500 hover:bg-indigo-600 font-bold h-12">
-                  <Save className="w-4 h-4 mr-2" /> Save API Keys
+
+                <Button onClick={handleSaveSettings} className="w-full bg-indigo-500 hover:bg-indigo-600 font-bold h-12 shadow-[0_4px_20px_rgba(79,70,229,0.2)]">
+                  <Save className="w-4 h-4 mr-2" /> Save Shortlink Settings
                 </Button>
               </CardContent>
             </Card>

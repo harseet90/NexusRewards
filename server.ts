@@ -157,9 +157,21 @@ async function startServer() {
       
       const fullRequestUrl = `${apiUrl}?api=${apiKey}&url=${encodeURIComponent(callbackUrl)}`;
       
-      console.log(`[Shorten] Requesting Shortlink: ${fullRequestUrl}`);
+      console.log(`[Shorten] Requesting Shortlink from ${apiUrl}...`);
       
-      const response = await axios.get(fullRequestUrl);
+      let response;
+      try {
+        response = await axios.get(fullRequestUrl, { timeout: 10000 });
+      } catch (axiosError: any) {
+        console.error(`[Shorten] Axios request failed:`, axiosError.message);
+        if (axiosError.response) {
+          console.error(`[Shorten] API returned error status: ${axiosError.response.status}`);
+          console.error(`[Shorten] API error data:`, axiosError.response.data);
+          throw new Error(`Shortlink provider returned an error (${axiosError.response.status}). Check your API settings.`);
+        }
+        throw new Error(`Failed to connect to shortlink provider: ${axiosError.message}`);
+      }
+
       const data = response.data;
       console.log(`[Shorten] API Response Data:`, data);
       
