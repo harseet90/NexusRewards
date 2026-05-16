@@ -15,22 +15,19 @@ const __dirname = path.dirname(__filename);
 const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
 const firebaseConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 
-console.log("[Server] Initializing with Project ID:", firebaseConfig.projectId);
-console.log("[Server] Using Database ID:", firebaseConfig.firestoreDatabaseId);
-
 if (admin.apps.length === 0) {
   try {
     admin.initializeApp({
       projectId: firebaseConfig.projectId
     });
-    console.log("[Server] Firebase Admin initialized with project:", firebaseConfig.projectId);
+    console.log("[Server] Firebase Admin initialized with projectId:", firebaseConfig.projectId);
   } catch (err) {
     console.error("[Server] Firebase Admin init error:", err);
   }
 }
 
 // Ensure we use the correct database ID (AI Studio uses non-default databases)
-const db = getFirestore(firebaseConfig.firestoreDatabaseId);
+const db = admin.app().firestore(firebaseConfig.firestoreDatabaseId || '(default)');
 
 // Pre-initialize settings if they don't exist
 const initializeSettings = async () => {

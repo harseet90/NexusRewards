@@ -373,73 +373,162 @@ export default function Admin() {
         </TabsContent>
 
         <TabsContent value="shortlinks" className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
-          <Card className="bg-[#1C1F26] border-white/5">
-            <CardHeader>
-              <CardTitle>Create New Shortlink Wall</CardTitle>
-              <CardDescription>Add sources for users to earn via link redirection</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Provider Title</label>
-                  <Input placeholder="ShrinkEarn" value={newShortlink.title} onChange={e => setNewShortlink({...newShortlink, title: e.target.value})} className="bg-black/20 border-white/10" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <Card className="lg:col-span-2 bg-[#1C1F26] border-white/5 order-2 lg:order-1">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <LayoutDashboard className="w-5 h-5 text-indigo-400" />
+                  <div>
+                    <CardTitle className="text-lg">Create New Shortlink Wall</CardTitle>
+                    <CardDescription>Setup a new earning source for your users</CardDescription>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Reward (NXS)</label>
-                  <Input type="number" value={newShortlink.reward} onChange={e => setNewShortlink({...newShortlink, reward: Number(e.target.value)})} className="bg-black/20 border-white/10" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Provider Type</label>
-                  <select 
-                    value={newShortlink.provider} 
-                    onChange={e => setNewShortlink({...newShortlink, provider: e.target.value})}
-                    className="w-full bg-black/20 border-white/10 rounded-md h-10 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 text-white"
-                  >
-                    <option value="shrinkme" className="bg-[#1C1F26]">ShrinkMe.io</option>
-                    <option value="shrinkearn" className="bg-[#1C1F26]">ShrinkEarn.com</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Optional API Key (Override)</label>
-                  <Input 
-                    placeholder="Leave empty to use global key" 
-                    value={newShortlink.apiKey} 
-                    onChange={e => setNewShortlink({...newShortlink, apiKey: e.target.value})} 
-                    className="bg-black/20 border-white/10 font-mono" 
-                  />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                   <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Description</label>
-                   <Input placeholder="Extra high rewards for this link" value={newShortlink.description} onChange={e => setNewShortlink({...newShortlink, description: e.target.value})} className="bg-black/20 border-white/10" />
-                </div>
-                <div className="flex items-end md:col-span-2">
-                  <Button onClick={handleAddShortlink} className="w-full bg-indigo-500 font-bold h-10">
-                    <Plus className="w-4 h-4 mr-2" /> Add Shortlink Wall
-                  </Button>
-                </div>
-              </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest flex items-center gap-1.5">
+                      <LayoutDashboard className="w-3 h-3 text-indigo-400/60" /> Provider Display Title
+                    </label>
+                    <Input 
+                      placeholder="e.g. ShrinkMe Premium" 
+                      value={newShortlink.title} 
+                      onChange={e => setNewShortlink({...newShortlink, title: e.target.value})} 
+                      className="bg-black/20 border-white/10 h-11" 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest flex items-center gap-1.5">
+                      <Coins className="w-3 h-3 text-yellow-400/60" /> Reward per Visit (NXS)
+                    </label>
+                    <Input 
+                      type="number" 
+                      value={newShortlink.reward} 
+                      onChange={e => setNewShortlink({...newShortlink, reward: Number(e.target.value)})} 
+                      className="bg-black/20 border-white/10 h-11 font-mono text-yellow-400" 
+                    />
+                  </div>
 
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest flex items-center gap-1.5 mb-3">
+                      <CheckCircle className="w-3 h-3 text-indigo-400/60" /> Select Provider Type
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button 
+                        onClick={() => setNewShortlink({...newShortlink, provider: 'shrinkme'})}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-200 gap-2",
+                          newShortlink.provider === 'shrinkme' 
+                            ? "bg-indigo-500/10 border-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.1)]" 
+                            : "bg-black/20 border-white/5 text-white/40 hover:border-white/20"
+                        )}
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center font-bold text-indigo-400">Sm</div>
+                        <span className="text-xs font-bold uppercase tracking-widest">ShrinkMe.io</span>
+                      </button>
+                      
+                      <button 
+                        onClick={() => setNewShortlink({...newShortlink, provider: 'shrinkearn'})}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-200 gap-2",
+                          newShortlink.provider === 'shrinkearn' 
+                            ? "bg-indigo-500/10 border-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.1)]" 
+                            : "bg-black/20 border-white/5 text-white/40 hover:border-white/20"
+                        )}
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center font-bold text-indigo-400">Se</div>
+                        <span className="text-xs font-bold uppercase tracking-widest">ShrinkEarn.com</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest flex items-center gap-1.5">
+                      <Key className="w-3 h-3 text-red-400/60" /> Individual API Key (Optional)
+                    </label>
+                    <Input 
+                      type="password"
+                      placeholder="Leave empty to use global setting" 
+                      value={newShortlink.apiKey} 
+                      onChange={e => setNewShortlink({...newShortlink, apiKey: e.target.value})} 
+                      className="bg-black/20 border-white/10 font-mono h-11" 
+                    />
+                    <p className="text-[9px] text-white/20 italic">Override the global API token for this specific shortlink wall.</p>
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest flex items-center gap-1.5">
+                      <Edit2 className="w-3 h-3 text-white/40" /> Catchy Description
+                    </label>
+                    <Input 
+                      placeholder="e.g. High payout, instant verification!" 
+                      value={newShortlink.description} 
+                      onChange={e => setNewShortlink({...newShortlink, description: e.target.value})} 
+                      className="bg-black/20 border-white/10 h-11" 
+                    />
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={handleAddShortlink} 
+                  className="w-full bg-indigo-500 hover:bg-indigo-600 font-bold h-12 shadow-[0_4px_20px_rgba(79,70,229,0.3)] transition-all active:scale-95"
+                >
+                  <Plus className="w-4 h-4 mr-2" /> Add Shortlink Wall
+                </Button>
+              </CardContent>
+            </Card>
+
+            <div className="space-y-6 order-1 lg:order-2">
+              <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-widest flex items-center gap-2 mb-2">
+                <CheckCircle className="w-3 h-3 text-indigo-400" /> Active Walls ({ptcAds.filter(a => a.type === 'SHORTLINK').length})
+              </h4>
               <div className="space-y-4">
-                <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-4">Active Shortlinks</h4>
-                {ptcAds.filter(a => a.type === 'SHORTLINK').map(link => (
-                  <div key={link.id} className="flex items-center justify-between p-4 bg-black/20 border border-white/5 rounded-xl">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center font-bold text-indigo-400">
+                {ptcAds.filter(a => a.type === 'SHORTLINK').map((link, idx) => (
+                  <div 
+                    key={link.id} 
+                    className="p-4 bg-[#1C1F26] border border-white/5 rounded-2xl relative overflow-hidden group hover:border-indigo-500/50 transition-all duration-300 animate-in slide-in-from-right-4"
+                    style={{ animationDelay: `${idx * 100}ms` }}
+                  >
+                    <div className="absolute top-0 right-0 p-3 flex gap-2">
+                      <Button size="icon" variant="ghost" onClick={() => handleDeleteAd(link.id)} className="h-7 w-7 text-white/20 hover:text-red-500 hover:bg-red-500/10 transition-colors">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    
+                    <div className="flex gap-4">
+                      <div className="flex-shrink-0 w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center font-bold text-indigo-400 text-lg border border-indigo-500/20">
                         {link.title[0]}
                       </div>
-                      <div>
-                        <p className="font-bold text-white">{link.title}</p>
-                        <p className="text-[10px] text-indigo-400/60 font-mono italic">Reward: {link.reward} NXS</p>
+                      <div className="flex-1 pr-6">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-bold text-white">{link.title}</h3>
+                          <Badge variant="outline" className="text-[8px] bg-indigo-500/10 text-indigo-400 border-indigo-500/20 uppercase">
+                            {link.provider || 'sm'}
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-white/40 mb-2 line-clamp-1">{link.description || 'No description provided'}</p>
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center gap-1 text-[10px] font-bold text-yellow-400">
+                             <Coins className="w-3 h-3" /> {link.reward} NXS
+                          </span>
+                          <span className="text-[10px] text-white/20">•</span>
+                          <span className="text-[9px] text-white/30 font-mono">ID: {link.id}</span>
+                        </div>
                       </div>
                     </div>
-                    <Button size="icon" variant="ghost" onClick={() => handleDeleteAd(link.id)} className="h-8 w-8 text-red-500/50 hover:text-red-500">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </div>
                 ))}
+                
+                {ptcAds.filter(a => a.type === 'SHORTLINK').length === 0 && (
+                  <div className="p-8 border border-dashed border-white/10 rounded-2xl text-center">
+                    <AlertCircle className="w-8 h-8 text-white/10 mx-auto mb-2" />
+                    <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">No walls created yet</p>
+                  </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="banners" className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
