@@ -33,7 +33,7 @@ export default function Admin() {
 
   const [bannerAds, setBannerAds] = useState<any[]>([]);
   const [newBannerAd, setNewBannerAd] = useState({ imageUrl: '', linkUrl: '', position: 'header' as const, isActive: true });
-  const [newShortlink, setNewShortlink] = useState({ title: '', reward: 120, description: '' });
+  const [newShortlink, setNewShortlink] = useState({ title: '', reward: 120, description: '', provider: 'shrinkme', apiKey: '' });
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
 
   useEffect(() => {
@@ -119,10 +119,11 @@ export default function Admin() {
         ...newShortlink,
         id,
         type: 'SHORTLINK',
+        provider: newShortlink.provider || 'shrinkme',
         isActive: true,
         createdAt: new Date().toISOString()
       });
-      setNewShortlink({ title: '', reward: 120, description: '' });
+      setNewShortlink({ title: '', reward: 120, description: '', provider: 'shrinkme', apiKey: '' });
       toast.success("Shortlink added successfully!");
     } catch (err) {
       toast.error("Failed to add shortlink");
@@ -387,13 +388,33 @@ export default function Admin() {
                   <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Reward (NXS)</label>
                   <Input type="number" value={newShortlink.reward} onChange={e => setNewShortlink({...newShortlink, reward: Number(e.target.value)})} className="bg-black/20 border-white/10" />
                 </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Provider Type</label>
+                  <select 
+                    value={newShortlink.provider} 
+                    onChange={e => setNewShortlink({...newShortlink, provider: e.target.value})}
+                    className="w-full bg-black/20 border-white/10 rounded-md h-10 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 text-white"
+                  >
+                    <option value="shrinkme" className="bg-[#1C1F26]">ShrinkMe.io</option>
+                    <option value="shrinkearn" className="bg-[#1C1F26]">ShrinkEarn.com</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Optional API Key (Override)</label>
+                  <Input 
+                    placeholder="Leave empty to use global key" 
+                    value={newShortlink.apiKey} 
+                    onChange={e => setNewShortlink({...newShortlink, apiKey: e.target.value})} 
+                    className="bg-black/20 border-white/10 font-mono" 
+                  />
+                </div>
                 <div className="space-y-2 md:col-span-2">
                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Description</label>
                    <Input placeholder="Extra high rewards for this link" value={newShortlink.description} onChange={e => setNewShortlink({...newShortlink, description: e.target.value})} className="bg-black/20 border-white/10" />
                 </div>
-                <div className="flex items-end">
+                <div className="flex items-end md:col-span-2">
                   <Button onClick={handleAddShortlink} className="w-full bg-indigo-500 font-bold h-10">
-                    <Plus className="w-4 h-4 mr-2" /> Add Shortlink
+                    <Plus className="w-4 h-4 mr-2" /> Add Shortlink Wall
                   </Button>
                 </div>
               </div>

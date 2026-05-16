@@ -119,11 +119,19 @@ async function startServer() {
       const taskSnap = await db.collection('tasks').doc(linkId).get();
       const task = taskSnap.exists ? taskSnap.data() : null;
       
-      // Use the 'shrinkearn' field as the key if that's where the user put it
-      const apiKey = settings?.shrinkearn || settings?.shortlinkKeys?.shrinkearn;
-      const apiUrl = settings?.shortlinkApiUrl || 'https://shrinkme.io/api';
+      // 1. Determine API Key (Task override > Global key)
+      const apiKey = task?.apiKey || settings?.shrinkearn || settings?.shortlinkKeys?.shrinkearn;
+      
+      // 2. Determine API URL (Task provider > Global URL)
+      let apiUrl = settings?.shortlinkApiUrl || 'https://shrinkme.io/api';
+      
+      if (task?.provider === 'shrinkme') {
+        apiUrl = 'https://shrinkme.io/api';
+      } else if (task?.provider === 'shrinkearn') {
+        apiUrl = 'https://shrinkearn.com/api';
+      }
 
-      console.log(`[Shorten] Using API URL: ${apiUrl}`);
+      console.log(`[Shorten] Using Provider: ${task?.provider || 'default'}, API URL: ${apiUrl}`);
       
       if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
         throw new Error(`Shortlink API key not configured. Please add your API key in the 'shrinkearn' field in Admin settings (Firestore: settings/config).`);
