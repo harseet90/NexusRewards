@@ -20,8 +20,8 @@ export default function Admin() {
     ouo: '',
     minWithdrawal: 1000,
     maintenanceMode: false,
-    captchaSiteKey: '',
-    captchaSecretKey: '',
+    captchaSiteKey: '6LeklewsAAAAAA4owo2vnYC2sWt0nd-4RjWMSaSX',
+    captchaSecretKey: '6LeklewsAAAAAD6ICI587fyBwMIfCiZUsNE3onVv',
     adScript: '',
     faucetPayKey: '',
     faucetPayCurrency: 'BTC',
@@ -307,7 +307,7 @@ export default function Admin() {
                    </TableRow>
                  </TableHeader>
                  <TableBody>
-                   {ptcAds.map(ad => (
+                   {ptcAds.filter(ad => ad.type === 'PTC').map(ad => (
                      <TableRow key={ad.id} className="border-white/5 hover:bg-white/[0.02]">
                        <TableCell className="font-medium">{ad.title}</TableCell>
                        <TableCell className="font-mono text-indigo-400">{ad.reward} NXS</TableCell>

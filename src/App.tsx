@@ -35,14 +35,22 @@ function AppContent() {
   useEffect(() => {
     if (adScript) {
       const script = document.createElement('script');
-      script.innerHTML = adScript;
-      document.body.appendChild(script);
+      try {
+        script.innerHTML = adScript;
+        document.body.appendChild(script);
+      } catch (err) {
+        console.error("Ad script injection failed:", err);
+      }
       return () => {
-        const scripts = document.body.getElementsByTagName('script');
-        for (let i = 0; i < scripts.length; i++) {
-          if (scripts[i].innerHTML === adScript) {
-            document.body.removeChild(scripts[i]);
+        try {
+          const scripts = document.body.getElementsByTagName('script');
+          for (let i = 0; i < scripts.length; i++) {
+            if (scripts[i].innerHTML === adScript) {
+              document.body.removeChild(scripts[i]);
+            }
           }
+        } catch (err) {
+          console.error("Ad script removal failed:", err);
         }
       };
     }

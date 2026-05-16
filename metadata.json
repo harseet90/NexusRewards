@@ -2,5 +2,5 @@
   "name": "Nexus Rewards",
   "description": "A premium crypto rewards platform featuring PTC, shortlinks, challenges, and a high-end dashboard.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

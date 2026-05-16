@@ -4,6 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nexus Rewards</title>
+    <script>
+      // Protection against legacy polyfills trying to overwrite native fetch
+      (function() {
+        if (typeof window.fetch === 'function') {
+          var _originalFetch = window.fetch;
+          try {
+            Object.defineProperty(window, 'fetch', {
+              configurable: false,
+              enumerable: true,
+              get: function() { return _originalFetch; },
+              set: function(v) { 
+                console.warn('Blocked attempt to overwrite window.fetch');
+              }
+            });
+          } catch (e) {
+            // If already non-configurable, we can't do anything, 
+            // but at least this script won't crash either.
+          }
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
