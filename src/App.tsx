@@ -16,6 +16,7 @@ import Shortlinks from './pages/Shortlinks';
 import Challenges from './pages/Challenges';
 import Surveys from './pages/Surveys';
 import History from './pages/History';
+import ShortlinkVerify from './pages/ShortlinkVerify';
 
 function AppContent() {
   const { user, profile, loading, signIn } = useAuth();
@@ -91,6 +92,7 @@ function AppContent() {
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/referrals" element={<Referrals />} />
             <Route path="/history" element={<History />} />
+            <Route path="/shortlink/verify" element={<ShortlinkVerify />} />
             <Route path="/admin.portal" element={profile?.isAdmin ? <Admin /> : <Navigate to="/" />} />
           </Routes>
           <AdBanner position="bottom" className="w-full aspect-[8/1] mt-12" />

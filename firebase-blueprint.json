@@ -86,6 +86,18 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["imageUrl", "linkUrl", "position", "isActive"]
+    },
+    "LinkSession": {
+      "title": "Shortlink Session",
+      "description": "Verification session for completing shortlinks",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "linkId": { "type": "string" },
+        "completed": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "linkId", "completed"]
     }
   },
   "firestore": {
@@ -112,6 +124,10 @@
     "/ads/{adId}": {
       "schema": "BannerAd",
       "description": "Banner advertisements"
+    },
+    "/link_sessions/{sessionId}": {
+      "schema": "LinkSession",
+      "description": "Active shortlink verification sessions"
     }
   }
 }

@@ -21,6 +21,7 @@ export default function Admin() {
     minWithdrawal: 1000,
     maintenanceMode: false,
     captchaSiteKey: '',
+    captchaSecretKey: '',
     adScript: '',
     faucetPayKey: '',
     faucetPayCurrency: 'BTC',
@@ -31,7 +32,7 @@ export default function Admin() {
 
   const [bannerAds, setBannerAds] = useState<any[]>([]);
   const [newBannerAd, setNewBannerAd] = useState({ imageUrl: '', linkUrl: '', position: 'header' as const, isActive: true });
-
+  const [newShortlink, setNewShortlink] = useState({ title: '', reward: 120, description: '' });
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
 
   useEffect(() => {
@@ -109,6 +110,24 @@ export default function Admin() {
     }
   };
 
+  const handleAddShortlink = async () => {
+    if (!newShortlink.title || !newShortlink.reward) return;
+    try {
+      const id = Math.random().toString(36).substring(7);
+      await setDoc(doc(db, 'tasks', id), {
+        ...newShortlink,
+        id,
+        type: 'SHORTLINK',
+        isActive: true,
+        createdAt: new Date().toISOString()
+      });
+      setNewShortlink({ title: '', reward: 120, description: '' });
+      toast.success("Shortlink added successfully!");
+    } catch (err) {
+      toast.error("Failed to add shortlink");
+    }
+  };
+
   const handleDeleteBannerAd = async (id: string) => {
     try {
       await deleteDoc(doc(db, 'ads', id));
@@ -146,6 +165,7 @@ export default function Admin() {
         <TabsList className="bg-[#1C1F26] border-white/5 p-1 mb-8">
           <TabsTrigger value="config" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white uppercase text-[10px] font-bold tracking-widest px-8">Configuration</TabsTrigger>
           <TabsTrigger value="ptc" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white uppercase text-[10px] font-bold tracking-widest px-8">PTC Ads</TabsTrigger>
+          <TabsTrigger value="shortlinks" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white uppercase text-[10px] font-bold tracking-widest px-8">Shortlinks</TabsTrigger>
           <TabsTrigger value="banners" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white uppercase text-[10px] font-bold tracking-widest px-8">Banner Ads</TabsTrigger>
           <TabsTrigger value="users" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white uppercase text-[10px] font-bold tracking-widest px-8">Users & Data</TabsTrigger>
           <TabsTrigger value="payouts" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white uppercase text-[10px] font-bold tracking-widest px-8">Withdrawals</TabsTrigger>
@@ -192,6 +212,15 @@ export default function Admin() {
                   <Input 
                     value={settings.captchaSiteKey} 
                     onChange={e => setSettings({...settings, captchaSiteKey: e.target.value})} 
+                    className="bg-black/20 border-white/10 font-mono"
+                  />
+                </div>
+                <div className="space-y-4">
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">ReCAPTCHA Secret Key</label>
+                  <Input 
+                    type="password"
+                    value={settings.captchaSecretKey} 
+                    onChange={e => setSettings({...settings, captchaSecretKey: e.target.value})} 
                     className="bg-black/20 border-white/10 font-mono"
                   />
                 </div>
@@ -297,6 +326,56 @@ export default function Admin() {
                    ))}
                  </TableBody>
                </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="shortlinks" className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
+          <Card className="bg-[#1C1F26] border-white/5">
+            <CardHeader>
+              <CardTitle>Create New Shortlink Wall</CardTitle>
+              <CardDescription>Add sources for users to earn via link redirection</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Provider Title</label>
+                  <Input placeholder="ShrinkEarn" value={newShortlink.title} onChange={e => setNewShortlink({...newShortlink, title: e.target.value})} className="bg-black/20 border-white/10" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Reward (NXS)</label>
+                  <Input type="number" value={newShortlink.reward} onChange={e => setNewShortlink({...newShortlink, reward: Number(e.target.value)})} className="bg-black/20 border-white/10" />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                   <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Description</label>
+                   <Input placeholder="Extra high rewards for this link" value={newShortlink.description} onChange={e => setNewShortlink({...newShortlink, description: e.target.value})} className="bg-black/20 border-white/10" />
+                </div>
+                <div className="flex items-end">
+                  <Button onClick={handleAddShortlink} className="w-full bg-indigo-500 font-bold h-10">
+                    <Plus className="w-4 h-4 mr-2" /> Add Shortlink
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-4">Active Shortlinks</h4>
+                {ptcAds.filter(a => a.type === 'SHORTLINK').map(link => (
+                  <div key={link.id} className="flex items-center justify-between p-4 bg-black/20 border border-white/5 rounded-xl">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center font-bold text-indigo-400">
+                        {link.title[0]}
+                      </div>
+                      <div>
+                        <p className="font-bold text-white">{link.title}</p>
+                        <p className="text-[10px] text-indigo-400/60 font-mono italic">Reward: {link.reward} NXS</p>
+                      </div>
+                    </div>
+                    <Button size="icon" variant="ghost" onClick={() => handleDeleteAd(link.id)} className="h-8 w-8 text-red-500/50 hover:text-red-500">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

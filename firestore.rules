@@ -105,7 +105,13 @@ service cloud.firestore {
                data.isActive is bool;
       }
       allow read: if true; // Public can see ads
-      allow write: if isAdmin() && isValidAd(incoming());
+      allow write: if isAdmin();
+    }
+
+    // Link Sessions Collection
+    match /link_sessions/{sessionId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow write: if false; // Only server (Admin SDK) should write this
     }
   }
 }

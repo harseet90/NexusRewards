@@ -1,38 +1,65 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { db } from '../lib/firebase';
-import { doc, updateDoc, setDoc, collection, increment } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, ShieldCheck, Flame, MousePointer2 } from 'lucide-react';
+import { ExternalLink, ShieldCheck, Flame, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
-
-const links = [
-  { id: 'sl1', name: 'ShrinkEarn', views: '0/5', reward: 120.00, difficulty: 'Easy' },
-  { id: 'sl2', name: 'Ouo.io', views: '0/3', reward: 95.50, difficulty: 'Medium' },
-  { id: 'sl3', name: 'Shortfly', views: '1/3', reward: 150.00, difficulty: 'Hard' },
-  { id: 'sl4', name: 'Adfly Pro', views: '0/10', reward: 200.00, difficulty: 'Medium' },
-];
+import axios from 'axios';
+import { cn } from '@/lib/utils';
 
 export default function Shortlinks() {
   const { profile } = useAuth();
-  
-  const handleClaim = (link: any) => {
-    toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 2000)),
-      {
-        loading: 'Redirecting to secure link...',
-        success: () => {
-          // In a real app, you'd redirect to the link provider
-          // and receive a callback. For now simulation:
-          return `Returning from ${link.name}...`;
-        },
-        error: 'Failed to connect to provider.',
-      }
+  const [links, setLinks] = useState<any[]>([]);
+  const [loadingLinks, setLoadingLinks] = useState(true);
+  const [redirectingId, setRedirectingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const q = query(
+      collection(db, 'tasks'),
+      where('type', '==', 'SHORTLINK')
     );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setLinks(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setLoadingLinks(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+  
+  const handleClaim = async (link: any) => {
+    if (!profile?.uid) return toast.error("Please login first");
+    
+    setRedirectingId(link.id);
+    try {
+      const response = await axios.post('/api/shorten', {
+        linkId: link.id,
+        userId: profile.uid
+      });
+
+      if (response.data.shortenedUrl) {
+        toast.success("Link generated! Redirecting...");
+        window.open(response.data.shortenedUrl, '_blank');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to generate link");
+      console.error(err);
+    } finally {
+      setRedirectingId(null);
+    }
   };
+
+  if (loadingLinks) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -42,7 +69,7 @@ export default function Shortlinks() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {links.map((link, i) => (
+        {links.length > 0 ? links.map((link, i) => (
           <motion.div
             key={link.id}
             initial={{ opacity: 0, scale: 0.95 }}
@@ -55,19 +82,23 @@ export default function Shortlinks() {
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center transition-colors group-hover:bg-indigo-500/10">
-                          <ExternalLink className="w-6 h-6 text-indigo-400" />
+                          {redirectingId === link.id ? (
+                            <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
+                          ) : (
+                            <ExternalLink className="w-6 h-6 text-indigo-400" />
+                          )}
                         </div>
                         <div>
-                          <h3 className="font-bold text-lg text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{link.name}</h3>
-                          <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest">Views available: {link.views}</p>
+                          <h3 className="font-bold text-lg text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{link.title}</h3>
+                          <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest italic">{link.description || 'Verified Link'}</p>
                         </div>
                       </div>
                       <Badge variant="outline" className={cn(
                         "text-[10px] font-bold uppercase py-1 border-none bg-white/5",
-                        link.difficulty === 'Easy' ? 'text-emerald-400' : 
-                        link.difficulty === 'Medium' ? 'text-yellow-400' : 'text-red-400'
+                        link.reward > 150 ? 'text-red-400' : 
+                        link.reward > 100 ? 'text-yellow-400' : 'text-emerald-400'
                       )}>
-                        {link.difficulty}
+                        {link.reward > 150 ? 'Hard' : link.reward > 100 ? 'Medium' : 'Easy'}
                       </Badge>
                     </div>
 
@@ -76,11 +107,15 @@ export default function Shortlinks() {
                           <Flame className="w-4 h-4 text-orange-500" />
                           <div>
                             <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest leading-none mb-0.5">Reward per visit</p>
-                            <p className="text-lg font-mono font-bold text-white tracking-tighter">{link.reward.toFixed(2)} <span className="text-sm font-bold text-indigo-400">NXS</span></p>
+                            <p className="text-lg font-mono font-bold text-white tracking-tighter">{link.reward} <span className="text-sm font-bold text-indigo-400">NXS</span></p>
                           </div>
                        </div>
-                       <Button onClick={() => handleClaim(link)} className="bg-white text-black hover:bg-white/90 font-bold px-8 h-12 rounded-xl">
-                         Visit Link
+                       <Button 
+                        onClick={() => handleClaim(link)} 
+                        disabled={redirectingId !== null}
+                        className="bg-white text-black hover:bg-white/90 font-bold px-8 h-12 rounded-xl"
+                       >
+                         {redirectingId === link.id ? 'Loading...' : 'Visit Link'}
                        </Button>
                     </div>
                   </div>
@@ -92,12 +127,13 @@ export default function Shortlinks() {
                </CardContent>
             </Card>
           </motion.div>
-        ))}
+        )) : (
+          <div className="col-span-full py-20 text-center bg-[#1C1F26] rounded-3xl border border-white/5 border-dashed">
+            <p className="text-white/40 italic">No shortlinks currently available. Check back soon!</p>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(' ');
-}
